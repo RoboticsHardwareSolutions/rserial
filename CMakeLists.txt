@@ -17,7 +17,7 @@ add_subdirectory(test/runit)
 
 target_include_directories(rserial_test PRIVATE . )
 if (NOT MSVC)
-    target_link_libraries(rserial_test PRIVATE m)
+    target_link_libraries(rserial_test PRIVATE . )
 endif ()
 
 
