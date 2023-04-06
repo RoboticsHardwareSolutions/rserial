@@ -137,7 +137,7 @@ int stop_bit_convert(char* mode)
     return bstop;
 }
 
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, bool flowctrl)
+int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flowctrl)
 {
     if (instance == NULL || port_name == NULL || instance->opened)
     {

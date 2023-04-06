@@ -28,7 +28,7 @@ typedef struct
  * @param flowctrl - true for enable
  * @return 0 - if ok and -1 if error open
  */
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, bool flowctrl);
+int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flowctrl);
 
 /**
  * @param instance
