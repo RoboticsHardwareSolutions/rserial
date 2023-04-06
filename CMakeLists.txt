@@ -8,32 +8,24 @@ project(rserial_test
 add_library(rserial rserial.c rserial.h)
 
 add_executable(rserial_test
+        test/runit/src/runit.c
         rserial.h
         rserial.c
         test/test.c)
 
 
-add_subdirectory(test/runit)
-
-target_include_directories(rserial_test PRIVATE . )
-if (NOT MSVC)
-    target_link_libraries(rserial_test PRIVATE . )
-endif ()
-
+target_include_directories(rserial_test PRIVATE ./ ./test/runit/src)
 
 if (MSVC OR MSYS OR MINGW)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_WINDOWS)
-    target_link_libraries(${PROJECT_NAME} PUBLIC runit)
 endif ()
 
 if (APPLE)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_APPLE)
-    target_link_libraries(${PROJECT_NAME} PUBLIC runit)
 endif ()
 
 if (UNIX AND NOT APPLE)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_UNIX)
-    target_link_libraries(${PROJECT_NAME} PUBLIC runit)
 endif ()
 
 set(FILES_FOR_FORMATTING
@@ -49,7 +41,7 @@ if (NOT clang_format)
 else ()
     file(GLOB format_files ${FILES_FOR_FORMATTING})
     message(STATUS "Using clang-format: ${clang_format}; files: ${format_files}")
-    add_custom_target(format COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
+    add_custom_target(format_rserial COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
 endif ()
 
 
