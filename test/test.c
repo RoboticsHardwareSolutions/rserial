@@ -4,8 +4,8 @@
 rserial serial1;
 rserial serial2;
 
-#define VIRTUAL_PORT1 "/dev/ttys004"
-#define VIRTUAL_PORT2 "/dev/ttys005"
+#define VIRTUAL_PORT1 "/dev/ttys003"
+#define VIRTUAL_PORT2 "/dev/ttys004"
 
 uint8_t example_of_data1[] = {0xAA, 0xBB, 0xCC};
 char example_of_data2[] = "Hello World\n";
@@ -52,5 +52,6 @@ int main() {
     printf("rserial start unit test\n");
     test_open_close();
     test_read_write();
+    runit_report();
     return runit_at_least_one_fail;
 }

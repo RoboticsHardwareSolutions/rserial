@@ -144,7 +144,7 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
         return -1;
     }
 
-    instance->fd = open(port_name, O_RDWR | O_NOCTTY);
+    instance->fd = open(port_name, O_RDWR | O_NOCTTY | O_NDELAY);
     if (instance->fd == -1)
     {
         return -1;
@@ -268,7 +268,7 @@ int rserial_read(rserial* instance, uint8_t* data, size_t size)
         if (read_result == 0)
             count--;
 
-    } while (count != size);
+    } while (count != size); //FIXME delete blocking call make read again if data not ready full
     return count;
 }
 
@@ -287,7 +287,7 @@ int rserial_readline(rserial* instance, char* data, char* eol)
         if (read_result == 0)
             count--;
 
-    } while (data[count - 1] != *eol);  // FIXME availiable option \r\n \n
+    } while (data[count - 1] != eol);  // FIXME availiable option \r\n \n
     return count;
 }
 
@@ -306,7 +306,7 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
         if (write_result == 0)
             count--;
 
-    } while (count != size);
+    } while (count != size); // FIXME  delete block call its real problem with start and stop ((
     return count;
 }
 
