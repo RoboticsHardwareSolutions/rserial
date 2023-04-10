@@ -1,7 +1,6 @@
 #include "rserial.h"
 #include "runit/src/runit.h"
 
-
 rserial serial1;
 rserial serial2;
 
@@ -27,13 +26,13 @@ void test_read_write(void)
     runit_true(rserial_open(&serial2, VIRTUAL_PORT2, 115200, "8N1", false, 7000) == 0);
 
     /** serial1 send*/
-    memset(read_data,0, sizeof(read_data));
+    memset(read_data, 0, sizeof(read_data));
     runit_true(rserial_write(&serial1, example_of_data1, sizeof(example_of_data1)) == sizeof(example_of_data1));
     runit_true(rserial_read(&serial2, read_data, sizeof(example_of_data1), 1000) == sizeof(example_of_data1));
     runit_true(memcmp(example_of_data1, read_data, sizeof(example_of_data1)) == 0);
 
     /** serial2 send*/
-    memset(read_data,0, sizeof(read_data));
+    memset(read_data, 0, sizeof(read_data));
     runit_true(rserial_write(&serial2, example_of_data1, sizeof(example_of_data1)) == sizeof(example_of_data1));
     runit_true(rserial_read(&serial1, read_data, sizeof(example_of_data1), 1000) == sizeof(example_of_data1));
     runit_true(memcmp(example_of_data1, read_data, sizeof(example_of_data1)) == 0);
@@ -42,20 +41,18 @@ void test_read_write(void)
     runit_true(rserial_close(&serial2) == 0);
 }
 
-
 void test_read_write_with_timeout(void)
 {
     runit_true(rserial_open(&serial1, VIRTUAL_PORT1, 115200, "8N1", false, 1000) == 0);
     runit_true(rserial_open(&serial2, VIRTUAL_PORT2, 115200, "8N1", false, 1000) == 0);
 
     /** serial1 send invalid*/
-    memset(read_data,0, sizeof(read_data));
-    runit_true(rserial_write(&serial1, example_of_data1, sizeof(example_of_data1) -1) == sizeof(example_of_data1) -1);
+    memset(read_data, 0, sizeof(read_data));
+    runit_true(rserial_write(&serial1, example_of_data1, sizeof(example_of_data1) - 1) == sizeof(example_of_data1) - 1);
     runit_true(rserial_read(&serial2, read_data, sizeof(example_of_data1), 1000) == -1);
 
-
     /** serial2 send valid*/
-    memset(read_data,0, sizeof(read_data));
+    memset(read_data, 0, sizeof(read_data));
     runit_true(rserial_write(&serial2, example_of_data1, sizeof(example_of_data1)) == sizeof(example_of_data1));
     runit_true(rserial_read(&serial1, read_data, sizeof(example_of_data1), 1000) == sizeof(example_of_data1));
     runit_true(memcmp(example_of_data1, read_data, sizeof(example_of_data1)) == 0);
@@ -69,22 +66,23 @@ void test_readline_write(void)
     runit_true(rserial_open(&serial1, VIRTUAL_PORT1, 115200, "8N1", false, 1000) == 0);
     runit_true(rserial_open(&serial2, VIRTUAL_PORT2, 115200, "8N1", false, 1000) == 0);
 
-
     /** serial2 send */
-    memset(read_data,0, sizeof(read_data));
-    runit_true(rserial_write(&serial2, (uint8_t*)example_of_data2, sizeof(example_of_data2) -1) == sizeof(example_of_data2) -1);
-    runit_true(rserial_readline(&serial1, (char*)read_data, '\n', 1000) == sizeof(example_of_data2) -1 );
+    memset(read_data, 0, sizeof(read_data));
+    runit_true(rserial_write(&serial2, (uint8_t*) example_of_data2, sizeof(example_of_data2) - 1) ==
+               sizeof(example_of_data2) - 1);
+    runit_true(rserial_readline(&serial1, (char*) read_data, '\n', 1000) == sizeof(example_of_data2) - 1);
     runit_true(memcmp(example_of_data2, read_data, sizeof(example_of_data2)) == 0);
 
-    memset(read_data,0, sizeof(read_data));
-    runit_true(rserial_write(&serial2, (uint8_t*)example_of_data3, sizeof(example_of_data3)) == sizeof(example_of_data3));
-    runit_true(rserial_readline(&serial1, (char*)read_data, '\0', 1000) == sizeof(example_of_data3));
+    memset(read_data, 0, sizeof(read_data));
+    runit_true(rserial_write(&serial2, (uint8_t*) example_of_data3, sizeof(example_of_data3)) ==
+               sizeof(example_of_data3));
+    runit_true(rserial_readline(&serial1, (char*) read_data, '\0', 1000) == sizeof(example_of_data3));
     runit_true(memcmp(example_of_data3, read_data, sizeof(example_of_data3)) == 0);
 
-
-    memset(read_data,0, sizeof(read_data));
-    runit_true(rserial_write(&serial2, (uint8_t*)example_of_data3, sizeof(example_of_data3) -1) == sizeof(example_of_data3) -1);
-    runit_true(rserial_readline(&serial1, (char*)read_data, '\0', 1000) == -1);
+    memset(read_data, 0, sizeof(read_data));
+    runit_true(rserial_write(&serial2, (uint8_t*) example_of_data3, sizeof(example_of_data3) - 1) ==
+               sizeof(example_of_data3) - 1);
+    runit_true(rserial_readline(&serial1, (char*) read_data, '\0', 1000) == -1);
     runit_true(memcmp(example_of_data3, read_data, sizeof(example_of_data3)) == 0);
 
     runit_true(rserial_close(&serial1) == 0);

@@ -336,7 +336,7 @@ int rserial_read(rserial* instance, uint8_t* data, size_t size, int timeout_us)
     return msg_length;
 }
 
-int rserial_readline(rserial* instance, char* data,  char eol, int timeout_us)
+int rserial_readline(rserial* instance, char* data, char eol, int timeout_us)
 {
     if (instance == NULL || data == NULL || instance->opened == false)
     {
@@ -370,7 +370,7 @@ int rserial_readline(rserial* instance, char* data,  char eol, int timeout_us)
 
         msg_length += rc;
 
-        if (data[msg_length - rc]  == eol)
+        if (data[msg_length - rc] == eol)
         {
             break;
         }
