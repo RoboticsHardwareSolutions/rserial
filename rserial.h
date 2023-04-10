@@ -9,12 +9,13 @@ extern "C" {
 #include "stdint.h"
 #include "stdbool.h"
 #include "termios.h"
+#include "sys/time.h"
 
 typedef struct
 {
     int            fd;
     bool           opened;
-    bool           non_block;
+    struct timeval byte_timeout;
     struct termios old_settings;
 } rserial;
 
@@ -28,7 +29,7 @@ typedef struct
  * @param flowctrl - true for enable
  * @return 0 - if ok and -1 if error open
  */
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flowctrl);
+int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flowctrl, int byte_timeout_us);
 
 /**
  * @param instance
@@ -36,9 +37,9 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
  * @param size
  * @return
  */
-int rserial_read(rserial* instance, uint8_t* data, size_t size);
+int rserial_read(rserial* instance, uint8_t* data, size_t size, int timeout_us);
 
-int rserial_readline(rserial* instance, char* data, char* eol);
+int rserial_readline(rserial* instance, char* data, char eol, int timeout_us);
 
 int rserial_write(rserial* instance, uint8_t* data, size_t size);
 
@@ -48,4 +49,4 @@ int rserial_close(rserial* instance);
 }
 #endif
 
-#endif
+#endif  //__RSERIAL_H__

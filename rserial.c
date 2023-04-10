@@ -4,6 +4,30 @@
 #include <unistd.h>
 #include "string.h"
 #include <sys/ioctl.h>
+#include "errno.h"
+
+int serial_select(int fd, fd_set* rset, struct timeval* tv)
+{
+    int s_rc;
+    while ((s_rc = select(fd + 1, rset, NULL, NULL, tv)) == -1)
+    {
+        if (errno == EINTR)
+        {
+            FD_ZERO(rset);
+            FD_SET(fd, rset);
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    if (s_rc == 0)
+    {
+        return -1;
+    }
+    return s_rc;
+}
 
 int baud_convert(int baudrate)
 {
@@ -70,7 +94,7 @@ int baud_convert(int baudrate)
     return baudr;
 }
 
-int data_bit_convert(char* mode)
+int data_bit_convert(const char* mode)
 {
     int bits = -1;
     switch (mode[0])
@@ -93,7 +117,7 @@ int data_bit_convert(char* mode)
     return bits;
 }
 
-int parity_convert(char* mode, int* cpar, int* ipar)
+int parity_convert(const char* mode, int* cpar, int* ipar)
 {
     switch (mode[1])
     {
@@ -119,7 +143,7 @@ int parity_convert(char* mode, int* cpar, int* ipar)
     return 0;
 }
 
-int stop_bit_convert(char* mode)
+int stop_bit_convert(const char* mode)
 {
     int bstop = -1;
 
@@ -137,12 +161,14 @@ int stop_bit_convert(char* mode)
     return bstop;
 }
 
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flowctrl)
+int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flowctrl, int byte_timeout_us)
 {
-    if (instance == NULL || port_name == NULL || instance->opened)
+    if (instance == NULL || port_name == NULL || instance->opened || byte_timeout_us < 0)
     {
         return -1;
     }
+    instance->byte_timeout.tv_sec  = 0;
+    instance->byte_timeout.tv_usec = byte_timeout_us;
 
     instance->fd = open(port_name, O_RDWR | O_NOCTTY | O_NDELAY);
     if (instance->fd == -1)
@@ -176,8 +202,14 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
             flock(instance->fd, LOCK_UN);
             return -1;
         }
-
-        baudrate  = baud_convert(baud);
+        if (9600 == B9600)
+        {
+            baudrate = baud;
+        }
+        else
+        {
+            baudrate = baud_convert(baud);
+        }
         parity    = parity_convert(mode, &cpar, &ipar);
         bits      = data_bit_convert(mode);
         stop_bits = stop_bit_convert(mode);
@@ -196,7 +228,7 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
         return -1;
     }
 
-    new_settings.c_cflag = bits | cpar | stop_bits | CLOCAL | CREAD;
+    new_settings.c_cflag = (unsigned long) (bits | cpar | stop_bits | CLOCAL | CREAD);
 
     if (flowctrl)
     {
@@ -204,17 +236,17 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
     }
     else
     {
-        new_settings.c_cflag &= ~CRTSCTS;
+        new_settings.c_cflag &= ~(unsigned long) CRTSCTS;
     }
 
-    new_settings.c_iflag = ipar;
-    new_settings.c_iflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-    new_settings.c_oflag &= ~OPOST;
+    new_settings.c_iflag = (unsigned long) ipar;
+    new_settings.c_iflag &= ~((unsigned long) ICANON | ECHO | ECHOE | ISIG);
+    new_settings.c_oflag &= ~(unsigned long) OPOST;
     new_settings.c_cc[VMIN]  = 0;
     new_settings.c_cc[VTIME] = 0;
 
-    cfsetospeed(&new_settings, baudrate);
-    cfsetispeed(&new_settings, baudrate);
+    cfsetospeed(&new_settings, (unsigned long) baudrate);
+    cfsetispeed(&new_settings, (unsigned long) baudrate);
 
     if ((tcsetattr(instance->fd, TCSANOW, &new_settings)) != 0)
     {
@@ -239,8 +271,8 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
     //        tcsetattr(instance->fd, TCSANOW, &old_settings);
     //        close(instance->fd);
     //        flock(instance->fd, LOCK_UN);
-    //        return -1;
     //    }
+    //        return -1;
 
     if (tcflush(instance->fd, TCIFLUSH) < 0)
     {
@@ -253,42 +285,106 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
     return 0;
 }
 
-int rserial_read(rserial* instance, uint8_t* data, size_t size)
+int rserial_read(rserial* instance, uint8_t* data, size_t size, int timeout_us)
 {
     if (instance == NULL || data == NULL || instance->opened == false || size == 0)
     {
         return -1;
     }
-    int count = 0;
-    do
-    {
-        int read_result = read(instance->fd, &data[count++], 1);
-        if (read_result == -1)
-            return read_result;
-        if (read_result == 0)
-            count--;
 
-    } while (count != size); //FIXME delete blocking call make read again if data not ready full
-    return count;
+    int             rc;
+    fd_set          selsect_set;
+    struct timeval  tv;
+    struct timeval* p_tv;
+    int             length_to_read = (int) size;
+    int             msg_length     = 0;
+    FD_ZERO(&selsect_set);
+    FD_SET(instance->fd, &selsect_set);
+    tv.tv_sec  = 0;
+    tv.tv_usec = timeout_us;
+    p_tv       = &tv;
+
+    while (length_to_read != 0)
+    {
+        rc = serial_select(instance->fd, &selsect_set, p_tv);
+        if (rc == -1)
+        {
+            return -1;
+        }
+
+        rc = (int) read(instance->fd, data + msg_length, (size_t) length_to_read);
+        if (rc == 0 || rc == -1)
+        {
+            return -1;
+        }
+
+        msg_length += rc;
+        length_to_read -= rc;
+
+        if (length_to_read == 0)
+        {
+            break;
+        }
+
+        if (length_to_read > 0 && (instance->byte_timeout.tv_sec > 0 || instance->byte_timeout.tv_usec > 0))
+        {
+            tv.tv_sec  = instance->byte_timeout.tv_sec;
+            tv.tv_usec = instance->byte_timeout.tv_usec;
+            p_tv       = &tv;
+        }
+    }
+    return msg_length;
 }
 
-int rserial_readline(rserial* instance, char* data, char* eol)
+int rserial_readline(rserial* instance, char* data,  char eol, int timeout_us)
 {
-    if (instance == NULL || data == NULL || instance->opened == false || eol == NULL)
+    if (instance == NULL || data == NULL || instance->opened == false)
     {
         return -1;
     }
-    int count = 0;
+
+    int             rc;
+    fd_set          selsect_set;
+    struct timeval  tv;
+    struct timeval* p_tv;
+    int             msg_length = 0;
+    FD_ZERO(&selsect_set);
+    FD_SET(instance->fd, &selsect_set);
+    tv.tv_sec  = 0;
+    tv.tv_usec = timeout_us;
+    p_tv       = &tv;
+
     do
     {
-        int read_result = read(instance->fd, &data[count++], 1);
-        if (read_result == -1)
-            return read_result;
-        if (read_result == 0)
-            count--;
+        rc = serial_select(instance->fd, &selsect_set, p_tv);
+        if (rc == -1)
+        {
+            return -1;
+        }
 
-    } while (data[count - 1] != eol);  // FIXME availiable option \r\n \n
-    return count;
+        rc = (int) read(instance->fd, data + msg_length, 1);
+        if (rc == 0 || rc == -1)
+        {
+            return -1;
+        }
+
+        msg_length += rc;
+
+        if (data[msg_length - rc]  == eol)
+        {
+            break;
+        }
+
+        if ((instance->byte_timeout.tv_sec > 0 || instance->byte_timeout.tv_usec > 0))
+        {
+            tv.tv_sec  = instance->byte_timeout.tv_sec;
+            tv.tv_usec = instance->byte_timeout.tv_usec;
+            p_tv       = &tv;
+        }
+
+    } while (1);
+
+    return msg_length;
 }
 
 int rserial_write(rserial* instance, uint8_t* data, size_t size)
@@ -297,17 +393,28 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
     {
         return -1;
     }
-    int count = 0;
+    int rc;
+    int msg_length      = 0;
+    int length_to_write = (int) size;
     do
     {
-        int write_result = write(instance->fd, &data[count++], 1);
-        if (write_result == -1)
-            return write_result;
-        if (write_result == 0)
-            count--;
+        rc = (int) write(instance->fd, data + msg_length, size);
+        if (rc == -1)
+        {
+            return -1;
+        }
 
-    } while (count != size); // FIXME  delete block call its real problem with start and stop ((
-    return count;
+        msg_length += rc;
+        length_to_write -= rc;
+
+        if (length_to_write == 0)
+        {
+            break;
+        }
+
+    } while (1);
+
+    return msg_length;
 }
 
 int rserial_close(rserial* instance)
