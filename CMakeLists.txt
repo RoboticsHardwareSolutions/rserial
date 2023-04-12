@@ -13,9 +13,10 @@ add_executable(rserial_test
         rserial.c
         test/test.c)
 
-include(test/runit/compiler_flags.cmake)
+
 
 target_include_directories(rserial_test PRIVATE ./ ./test/runit/src)
+#include(test/runit/compiler_flags.cmake) # uncomment it for test
 
 if (MSVC OR MSYS OR MINGW)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_WINDOWS)
