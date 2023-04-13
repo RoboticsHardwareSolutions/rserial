@@ -91,7 +91,7 @@ void test_readline_write(void)
 
 int main(void)
 {
-    printf("WARNING DIFENE NAME OF TWO SERIAL PORT FOR TEST\n");
+    printf("WARNING DEFINE NAME OF TWO SERIAL PORT FOR TEST\n");
     printf("For create two virtual serial enter :\n");
     printf("$ socat -d -d pty,raw,echo=0 pty,raw,echo=0\n");
     printf("You get next text :\n");
