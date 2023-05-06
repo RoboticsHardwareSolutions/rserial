@@ -285,7 +285,7 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
     return 0;
 }
 
-int rserial_read(rserial* instance, uint8_t* data, size_t size, int timeout_us)
+int rserial_read(rserial* instance, uint8_t* data, size_t size, unsigned int timeout_us)
 {
     if (instance == NULL || data == NULL || instance->opened == false || size == 0)
     {
@@ -301,7 +301,7 @@ int rserial_read(rserial* instance, uint8_t* data, size_t size, int timeout_us)
     FD_ZERO(&selsect_set);
     FD_SET(instance->fd, &selsect_set);
     tv.tv_sec  = 0;
-    tv.tv_usec = timeout_us;
+    tv.tv_usec = (int)timeout_us;
     p_tv       = &tv;
 
     while (length_to_read != 0)

@@ -37,7 +37,7 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
  * @param size
  * @return
  */
-int rserial_read(rserial* instance, uint8_t* data, size_t size, int timeout_us);
+int rserial_read(rserial* instance, uint8_t* data, size_t size, unsigned int timeout_us);
 
 int rserial_readline(rserial* instance, char* data, char eol, int timeout_us);
 
