@@ -161,7 +161,7 @@ int stop_bit_convert(const char* mode)
     return bstop;
 }
 
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flowctrl, int byte_timeout_us)
+int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flow_ctrl, int byte_timeout_us)
 {
     if (instance == NULL || port_name == NULL || instance->opened || byte_timeout_us < 0)
     {
@@ -230,7 +230,7 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
 
     new_settings.c_cflag = (unsigned long) (bits | cpar | stop_bits | CLOCAL | CREAD);
 
-    if (flowctrl)
+    if (flow_ctrl)
     {
         new_settings.c_cflag |= CRTSCTS;
     }

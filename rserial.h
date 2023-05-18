@@ -26,10 +26,10 @@ typedef struct
  * @param baud - availiable bauds:#define 50 75 110 134 150 200 300 600 1200 1800 2400 4800 7200 9600 19200 38400 14400
  *                                         28800 57600 76800 115200 230400
  * @param mode example "8N1" or "7N2" or "8E1"
- * @param flowctrl - true for enable
+ * @param flow_ctrl - true for enable
  * @return 0 - if ok and -1 if error open
  */
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flowctrl, int byte_timeout_us);
+int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flow_ctrl, int byte_timeout_us);
 
 /**
  * @param instance
