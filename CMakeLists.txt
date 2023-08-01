@@ -5,7 +5,7 @@ project(rserial_test
         DESCRIPTION
         "Simple way to use serial port ")
 
-add_library(rserial rserial.c rserial.h)
+add_library(rserial STATIC rserial.c)
 
 add_executable(rserial_test
         test/runit/src/runit.c
@@ -15,7 +15,8 @@ add_executable(rserial_test
 
 
 
-target_include_directories(rserial_test PRIVATE ./ ./test/runit/src)
+target_include_directories(rserial PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(rserial_test PUBLIC ./ PRIVATE ./test/runit/src)
 #include(test/runit/compiler_flags.cmake) # uncomment it for test
 
 if (MSVC OR MSYS OR MINGW)
