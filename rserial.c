@@ -1,10 +1,186 @@
 #include "rserial.h"
-#include <fcntl.h>
-#include <termios.h>
-#include <unistd.h>
+#include "rserial_def.h"
 #include "string.h"
-#include <sys/ioctl.h>
-#include "errno.h"
+
+#if defined(STM32F072xB) || defined(STM32F091xC) || defined(STM32F103xB) || defined(STM32F407xx) || \
+    defined(STM32F429xx) || defined(STM32F103xE) || defined(STM32F765xx) || defined(STM32G474xx)
+
+USART_TypeDef* convert_uart_name(char* port_name)
+{
+    if (strcmp(port_name, "UART1") == 0)
+    {
+        return USART1;
+    }
+    else if (strcmp(port_name, "UART2") == 0)
+    {
+        return USART2;
+    }
+    else if (strcmp(port_name, "UART3") == 0)
+    {
+        return USART3;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+int check_baud(int baud)
+{
+    if (baud < 50 || baud > 230400)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+int data_bit_convert(const char* mode, uint32_t* word_len)
+{
+    switch (mode[0])
+    {
+    case '8':
+        *word_len = UART_WORDLENGTH_8B;
+        break;
+    case '9':
+        *word_len = UART_WORDLENGTH_9B;
+        break;
+    default:
+        return -1;
+        break;
+    }
+    return 0;
+}
+
+int parity_convert(const char* mode, uint32_t* parity)
+{
+    switch (mode[1])
+    {
+    case 'N':
+    case 'n':
+        *parity = UART_PARITY_NONE;
+        break;
+    case 'E':
+    case 'e':
+        *parity = UART_PARITY_EVEN;
+        break;
+    case 'O':
+    case 'o':
+        *parity = UART_PARITY_ODD;
+        break;
+    default:
+        return -1;
+        break;
+    }
+    return 0;
+}
+
+int stop_bit_convert(const char* mode, uint32_t* stop)
+{
+    switch (mode[2])
+    {
+    case '1':
+        *stop = UART_STOPBITS_1;
+        break;
+    case '2':
+        *stop = UART_STOPBITS_2;
+        break;
+    default:
+        return -1;
+        break;
+    }
+    return 0;
+}
+
+int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flow_ctrl, int byte_timeout_us)
+{
+    uint32_t tmp;
+    memset(&instance->uart, 0, sizeof(instance->uart));
+    instance->byte_timeout_us        = byte_timeout_us;
+    instance->uart.Init.Mode         = UART_MODE_TX_RX;
+    instance->uart.Init.OverSampling = UART_OVERSAMPLING_16;
+    instance->uart.Instance          = convert_uart_name(port_name);
+    if (instance->uart.Instance == NULL)
+    {
+        return -1;
+    }
+    if (flow_ctrl == 1)
+    {
+        instance->uart.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
+    }
+    else
+    {
+        instance->uart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    }
+    if (check_baud(baud) == 0)
+    {
+        instance->uart.Init.BaudRate = baud;
+    }
+    else
+    {
+        return -1;
+    }
+    if (data_bit_convert(mode, &tmp))
+    {
+        return -1;
+    }
+    else
+    {
+        instance->uart.Init.WordLength = tmp;
+    }
+    if (stop_bit_convert(mode, &tmp))
+    {
+        return -1;
+    }
+    else
+    {
+        instance->uart.Init.StopBits = tmp;
+    }
+    if (parity_convert(mode, &tmp))
+    {
+        return -1;
+    }
+    else
+    {
+        instance->uart.Init.Parity = tmp;
+    }
+    if (HAL_UART_Init(&instance->uart) != HAL_OK)
+    {
+        return -1;
+    }
+}
+
+int rserial_read(rserial* instance, uint8_t* data, size_t size, unsigned int timeout_us)
+{
+    if (HAL_UART_Receive(&instance->uart, data, size, timeout_us / 1000) != HAL_OK)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+int rserial_readline(rserial* instance, char* data, char eol, int timeout_us) {}
+
+int rserial_write(rserial* instance, uint8_t* data, size_t size)
+{
+    if (HAL_UART_Transmit(&instance->uart, data, size, 5000) != HAL_OK)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+int rserial_close(rserial* instance)
+{
+    if (HAL_UART_DeInit(&instance->uart) != HAL_OK)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+#endif
+
+#if defined(RSERIAL_FOR_WINDOWS) || defined(RSERIAL_FOR_UNIX) || defined(RSERIAL_FOR_APPLE)
 
 int serial_select(int fd, fd_set* rset, struct timeval* tv)
 {
@@ -301,7 +477,7 @@ int rserial_read(rserial* instance, uint8_t* data, size_t size, unsigned int tim
     FD_ZERO(&selsect_set);
     FD_SET(instance->fd, &selsect_set);
     tv.tv_sec  = 0;
-    tv.tv_usec = (int)timeout_us;
+    tv.tv_usec = (int) timeout_us;
     p_tv       = &tv;
 
     while (length_to_read != 0)
@@ -434,3 +610,5 @@ int rserial_close(rserial* instance)
     }
     return -1;
 }
+
+#endif
