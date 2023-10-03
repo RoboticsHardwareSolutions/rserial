@@ -155,7 +155,7 @@ int rserial_read(rserial* instance, uint8_t* data, size_t size, unsigned int tim
     {
         return -1;
     }
-    return 0;
+    return size;
 }
 
 int rserial_readline(rserial* instance, char* data, char eol, int timeout_us) {}
