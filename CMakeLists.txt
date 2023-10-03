@@ -5,30 +5,35 @@ project(rserial_test
         DESCRIPTION
         "Simple way to use serial port ")
 
-add_library(rserial STATIC rserial.c)
+add_library(rserial STATIC rserial.c rserial.h rserial_def.h)
 
 add_executable(rserial_test
         test/runit/src/runit.c
         rserial.h
         rserial.c
+        rserial_def.h
         test/test.c)
 
 
 
 target_include_directories(rserial PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(rserial_test PUBLIC ./ PRIVATE ./test/runit/src)
+target_include_directories(rserial_test PUBLIC ./ PUBLIC ./test/runit/src)
 #include(test/runit/compiler_flags.cmake) # uncomment it for test
 
 if (MSVC OR MSYS OR MINGW)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_WINDOWS)
+    target_compile_definitions(rserial_test PUBLIC -DRSERIAL_FOR_WINDOWS)
 endif ()
 
 if (APPLE)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_APPLE)
+    target_compile_definitions(rserial_test PUBLIC -DRSERIAL_FOR_APPLE)
+
 endif ()
 
 if (UNIX AND NOT APPLE)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_UNIX)
+    target_compile_definitions(rserial_test PUBLIC -DRSERIAL_FOR_UNIX)
 endif ()
 
 set(FILES_FOR_FORMATTING
@@ -43,8 +48,7 @@ if (NOT clang_format)
     message(STATUS "Could not locate clang-format")
 else ()
     file(GLOB format_files ${FILES_FOR_FORMATTING})
-    message(STATUS "Using clang-format: ${clang_format}; files: ${format_files}")
-    add_custom_target(format_rserial COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
+    add_custom_target(rserial_format COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
 endif ()
 
 

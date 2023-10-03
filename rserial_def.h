@@ -38,7 +38,7 @@ struct serial_port
 
 #endif
 
-#if defined(RSERIAL_FOR_APPLE) || defined(RSERIAL_FOR_UNIX)
+#if defined(RSERIAL_FOR_APPLE) || defined(RSERIAL_FOR_UNIX) || defined(RSERIAL_FOR_WINDOWS)
 
 #    include "termios.h"
 #    include "sys/time.h"
