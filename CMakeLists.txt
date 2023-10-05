@@ -14,31 +14,46 @@ add_executable(rserial_test
         rserial_def.h
         test/test.c)
 
-
+add_executable(rserial_term
+        utils/rserial_term.c
+        utils/screen.c
+        utils/screen.h
+        utils/tty.c
+        utils/tty.h
+        rserial.h
+        rserial.c
+        rserial_def.h
+        )
 
 target_include_directories(rserial PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(rserial_term PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(rserial_test PUBLIC ./ PUBLIC ./test/runit/src)
-#include(test/runit/compiler_flags.cmake) # uncomment it for test
+
 
 if (MSVC OR MSYS OR MINGW)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_WINDOWS)
     target_compile_definitions(rserial_test PUBLIC -DRSERIAL_FOR_WINDOWS)
+    target_compile_definitions(rserial_term PUBLIC -DRSERIAL_FOR_WINDOWS)
 endif ()
 
 if (APPLE)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_APPLE)
     target_compile_definitions(rserial_test PUBLIC -DRSERIAL_FOR_APPLE)
+    target_compile_definitions(rserial_term PUBLIC -DRSERIAL_FOR_APPLE)
 
 endif ()
 
 if (UNIX AND NOT APPLE)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_UNIX)
     target_compile_definitions(rserial_test PUBLIC -DRSERIAL_FOR_UNIX)
+    target_compile_definitions(rserial_term PUBLIC -DRSERIAL_FOR_UNIX)
+
 endif ()
 
 set(FILES_FOR_FORMATTING
         rserial.c
         rserial.h
+        rserial_def.h
         test/test.c
         )
 
