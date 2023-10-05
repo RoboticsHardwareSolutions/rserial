@@ -147,6 +147,7 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
     {
         return -1;
     }
+    return 0;
 }
 
 int rserial_read(rserial* instance, uint8_t* data, size_t size, unsigned int timeout_us)
@@ -166,7 +167,7 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
     {
         return -1;
     }
-    return 0;
+    return size;
 }
 
 int rserial_close(rserial* instance)
