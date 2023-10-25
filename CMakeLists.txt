@@ -63,7 +63,7 @@ if (NOT clang_format)
     message(STATUS "Could not locate clang-format")
 else ()
     file(GLOB format_files ${FILES_FOR_FORMATTING})
-    add_custom_target(rserial_format COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
+    add_custom_target(rserial_format ALL COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
 endif ()
 
 

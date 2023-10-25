@@ -48,6 +48,7 @@ struct serial_port
 #    include "string.h"
 #    include <sys/ioctl.h>
 #    include "errno.h"
+#    include <sys/file.h>
 
 struct serial_port
 {
