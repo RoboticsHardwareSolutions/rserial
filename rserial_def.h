@@ -33,7 +33,7 @@
 struct serial_port
 {
     UART_HandleTypeDef uart;
-    int byte_timeout_us;
+    int                byte_timeout_us;
 };
 
 #endif
@@ -49,11 +49,14 @@ struct serial_port
 #    include <sys/ioctl.h>
 #    include "errno.h"
 #    include <sys/file.h>
+#    include <stdbool.h>
+#    include <sys/signal.h>
 
 struct serial_port
 {
     int            fd;
     bool           opened;
+    bool           enable_interrupt;
     struct timeval byte_timeout;
     struct termios old_settings;
 };

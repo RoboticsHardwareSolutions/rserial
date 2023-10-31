@@ -183,6 +183,9 @@ int rserial_close(rserial* instance)
 
 #if defined(RSERIAL_FOR_WINDOWS) || defined(RSERIAL_FOR_UNIX) || defined(RSERIAL_FOR_APPLE)
 
+/// @brief Varable for interrept handling
+volatile sig_atomic_t data_available;
+
 int serial_select(int fd, fd_set* rset, struct timeval* tv)
 {
     int s_rc;
@@ -338,6 +341,23 @@ int stop_bit_convert(const char* mode)
     return bstop;
 }
 
+void tty_signal_handler(int status)
+{
+    data_available = true;
+}
+
+int rserial_enable_it(rserial* instance)
+{
+    if (instance == NULL)
+    {
+        return -1;
+    }
+
+    instance->enable_interrupt = true;
+
+    return 0;
+}
+
 int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flow_ctrl, int byte_timeout_us)
 {
     if (instance == NULL || port_name == NULL || instance->opened || byte_timeout_us < 0)
@@ -351,6 +371,17 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
     if (instance->fd == -1)
     {
         return -1;
+    }
+
+    if (instance->enable_interrupt)
+    {
+        struct sigaction saio;
+        saio.sa_handler = tty_signal_handler;
+        sigemptyset(&saio.sa_mask);
+        saio.sa_flags = 0;
+        sigaction(SIGIO, &saio, NULL);
+        fcntl(instance->fd, F_SETOWN, getpid());
+        fcntl(instance->fd, F_SETFL, FASYNC);
     }
 
     int bits, parity, stop_bits, cpar, ipar, baudrate;
@@ -564,15 +595,47 @@ int rserial_readline(rserial* instance, char* data, char eol, int timeout_us)
     return msg_length;
 }
 
+int rserial_read_no_size(rserial* instance, uint8_t* data)
+{
+    if (instance == NULL || data == NULL || instance->opened == false)
+    {
+        return -1;
+    }
+
+    int rc;
+    int bytes_available;
+
+    rc = ioctl(instance->fd, FIONREAD, &bytes_available);
+    if (rc == -1)
+    {
+        return -1;
+    }
+
+    if (bytes_available == 0)
+    {
+        return bytes_available;
+    }
+
+    rc = (int) read(instance->fd, data, (size_t) bytes_available);
+    if (rc == 0 || rc == -1)
+    {
+        return -1;
+    }
+
+    return rc;
+}
+
 int rserial_write(rserial* instance, uint8_t* data, size_t size)
 {
     if (data == NULL || instance->opened == false || instance == NULL || size == 0)
     {
         return -1;
     }
-    int rc;
+
+    int rc, err;
     int msg_length      = 0;
     int length_to_write = (int) size;
+
     do
     {
         rc = (int) write(instance->fd, data + msg_length, size);
@@ -589,6 +652,11 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
             break;
         }
 
+        err = tcdrain(instance->fd);
+        if (err == -1)
+        {
+            return -1;
+        }
     } while (1);
 
     return msg_length;
