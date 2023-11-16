@@ -30,6 +30,8 @@ int rserial_readline(rserial* instance, char* data, char eol, int timeout_us);
 
 int rserial_write(rserial* instance, uint8_t* data, size_t size);
 
+bool rserial_is_ok(rserial* instance);
+
 int rserial_close(rserial* instance);
 
 #ifdef __cplusplus
