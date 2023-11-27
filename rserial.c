@@ -183,9 +183,6 @@ int rserial_close(rserial* instance)
 
 #if defined(RSERIAL_FOR_WINDOWS) || defined(RSERIAL_FOR_UNIX) || defined(RSERIAL_FOR_APPLE)
 
-/// @brief Varable for interrept handling
-volatile sig_atomic_t data_available;
-
 int serial_select(int fd, fd_set* rset, struct timeval* tv)
 {
     int s_rc;
@@ -341,19 +338,15 @@ int stop_bit_convert(const char* mode)
     return bstop;
 }
 
-void tty_signal_handler(int status)
+int rserial_enable_it(rserial* instance, void (*handler)(int))
 {
-    data_available = true;
-}
-
-int rserial_enable_it(rserial* instance)
-{
-    if (instance == NULL)
+    if (instance == NULL || handler == NULL)
     {
         return -1;
     }
 
-    instance->enable_interrupt = true;
+    instance->enable_interrupt  = true;
+    instance->interrupt_handler = handler;
 
     return 0;
 }
@@ -376,7 +369,7 @@ int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int f
     if (instance->enable_interrupt)
     {
         struct sigaction saio;
-        saio.sa_handler = tty_signal_handler;
+        saio.sa_handler = instance->interrupt_handler;
         sigemptyset(&saio.sa_mask);
         saio.sa_flags = 0;
         sigaction(SIGIO, &saio, NULL);
@@ -595,7 +588,7 @@ int rserial_readline(rserial* instance, char* data, char eol, int timeout_us)
     return msg_length;
 }
 
-int rserial_read_no_size(rserial* instance, uint8_t* data)
+int rserial_read_stream(rserial* instance, uint8_t* data)
 {
     if (instance == NULL || data == NULL || instance->opened == false)
     {

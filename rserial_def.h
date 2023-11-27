@@ -50,13 +50,14 @@ struct serial_port
 #    include "errno.h"
 #    include <sys/file.h>
 #    include <stdbool.h>
-#    include <sys/signal.h>
+#    include <signal.h>
 
 struct serial_port
 {
-    int            fd;
-    bool           opened;
-    bool           enable_interrupt;
+    int  fd;
+    bool opened;
+    bool enable_interrupt;
+    void (*interrupt_handler)(int);
     struct timeval byte_timeout;
     struct termios old_settings;
 };

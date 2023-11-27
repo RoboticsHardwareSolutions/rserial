@@ -59,7 +59,7 @@ int rserial_readline(rserial* instance, char* data, char eol, int timeout_us);
  * @param data              Pointer to buffer, where to reed data
  * @return int              Return err -1, 0 - no available data, >0 - size of readed data from device
  */
-int rserial_read_no_size(rserial* instance, uint8_t* data);
+int rserial_read_stream(rserial* instance, uint8_t* data);
 
 /**
  * @brief
@@ -83,9 +83,10 @@ int rserial_close(rserial* instance);
  * @brief                   Enables IT mode. Need to use before rserial_open().
  *
  * @param instance          Rserial instance
- * @return int              Return err -1 or OK - 0
+ * @param handler           Interrupt handler function
+ * @return int              Return err -1, 0 - no available data, >0 - size of readed data from device
  */
-int rserial_enable_it(rserial* instance);
+int rserial_enable_it(rserial* instance, void (*handler)(int));
 
 #ifdef __cplusplus
 }
