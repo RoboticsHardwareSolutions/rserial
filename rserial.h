@@ -80,7 +80,7 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size);
 int rserial_close(rserial* instance);
 
 /**
- * @brief                   Enables IT mode. Need to use before rserial_open().
+ * @brief                   Enables IT mode. Need to define handler function and use before rserial_open().
  *
  * @param instance          Rserial instance
  * @param handler           Interrupt handler function
