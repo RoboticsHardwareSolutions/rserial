@@ -26,7 +26,12 @@ typedef struct serial_port rserial;
  *                          for correct working of rserial_read()
  * @return int              Return err -1 or OK - 0
  */
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flow_ctrl, int byte_timeout_us);
+int rserial_open(rserial*    instance,
+                 const char* port_name,
+                 int         baud,
+                 const char* mode,
+                 int         flow_ctrl,
+                 int         byte_timeout_us);
 
 /**
  * @brief                   Read bytes from device up to a certain eol.

@@ -351,7 +351,12 @@ int rserial_enable_it(rserial* instance, void (*handler)(int))
     return 0;
 }
 
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flow_ctrl, int byte_timeout_us)
+int rserial_open(rserial*    instance,
+                 const char* port_name,
+                 int         baud,
+                 const char* mode,
+                 int         flow_ctrl,
+                 int         byte_timeout_us)
 {
     if (instance == NULL || port_name == NULL || instance->opened || byte_timeout_us < 0)
     {
