@@ -338,6 +338,23 @@ int stop_bit_convert(const char* mode)
     return bstop;
 }
 
+int set_rts(int fd, int on)
+{
+    int flags;
+
+    ioctl(fd, TIOCMGET, &flags);
+    if (on)
+    {
+        flags |= TIOCM_RTS;
+    }
+    else
+    {
+        flags &= ~TIOCM_RTS;
+    }
+    ioctl(fd, TIOCMSET, &flags);
+    return 1;
+}
+
 int rserial_enable_it(rserial* instance, void (*handler)(int))
 {
     if (instance == NULL || handler == NULL)
@@ -636,6 +653,8 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
 
     do
     {
+        set_rts(instance->fd, true);
+
         rc = (int) write(instance->fd, data + msg_length, size);
         if (rc == -1)
         {
@@ -655,6 +674,7 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
         {
             return -1;
         }
+        set_rts(instance->fd, false);
     } while (1);
 
     return msg_length;
