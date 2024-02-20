@@ -170,6 +170,33 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
     return size;
 }
 
+bool rserial_is_ok(rserial* instance)
+{
+    uint32_t err = HAL_UART_GetError(&instance->uart);
+
+    if (err & HAL_UART_ERROR_PE)
+    {
+        return false;
+    }
+    if (err & HAL_UART_ERROR_NE)
+    {
+        return false;
+    }
+    if (err & HAL_UART_ERROR_FE)
+    {
+        return false;
+    }
+    if (err & HAL_UART_ERROR_ORE)
+    {
+        return false;
+    }
+    if (err & HAL_UART_ERROR_DMA)
+    {
+        return false;
+    }
+    return true;
+}
+
 int rserial_close(rserial* instance)
 {
     if (HAL_UART_DeInit(&instance->uart) != HAL_OK)

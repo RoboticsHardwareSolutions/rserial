@@ -76,12 +76,8 @@ int rserial_read_stream(rserial* instance, uint8_t* data);
  */
 int rserial_write(rserial* instance, uint8_t* data, size_t size);
 
-/**
- * @brief
- *
- * @param instance          Rserial instance
- * @return int              Return err -1 or OK - 0
- */
+bool rserial_is_ok(rserial* instance);
+
 int rserial_close(rserial* instance);
 
 /**
