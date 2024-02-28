@@ -5,7 +5,7 @@
 #if defined(STM32F072xB) || defined(STM32F091xC) || defined(STM32F103xB) || defined(STM32F407xx) || \
     defined(STM32F429xx) || defined(STM32F103xE) || defined(STM32F765xx) || defined(STM32G474xx)
 
-USART_TypeDef* convert_uart_name(char* port_name)
+USART_TypeDef* convert_uart_name(const char* port_name)
 {
     if (strcmp(port_name, "UART1") == 0)
     {
@@ -91,7 +91,12 @@ int stop_bit_convert(const char* mode, uint32_t* stop)
     return 0;
 }
 
-int rserial_open(rserial* instance, char* port_name, int baud, char* mode, int flow_ctrl, int byte_timeout_us)
+int rserial_open(rserial*    instance,
+                 const char* port_name,
+                 int         baud,
+                 const char* mode,
+                 int         flow_ctrl,
+                 int         byte_timeout_us)
 {
     uint32_t tmp;
     memset(&instance->uart, 0, sizeof(instance->uart));
@@ -156,7 +161,7 @@ int rserial_read(rserial* instance, uint8_t* data, size_t size, unsigned int tim
     {
         return -1;
     }
-    return size;
+    return (int) size;
 }
 
 int rserial_readline(rserial* instance, char* data, char eol, int timeout_us) {}
@@ -167,7 +172,7 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
     {
         return -1;
     }
-    return size;
+    return (int) size;
 }
 
 bool rserial_is_ok(rserial* instance)

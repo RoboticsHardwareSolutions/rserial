@@ -47,7 +47,7 @@ void view_input_data()
             sprintf(&line[internal_line_prt], "%02X ", receive_buffer[buf_ptr]);
             internal_line_prt = internal_line_prt + 3;
             buf_ptr++;
-        };
+        }
         buf_ptr = buf_ptr + RECEIVED_DATA_STRING_SIZE;
         println("-> %.*s", sizeof(line), line);
     }
@@ -58,14 +58,14 @@ void init_stdin()
     tty_save_backup();
     tty_set_non_canonical_mode();
     tty_read_nonblock();
-};
+}
 
 void deinit_stdin(void)
 {
     tty_set_backup();
     tty_read_block();
     tty_flash();
-};
+}
 
 void show_output_echo(void)
 {
@@ -120,7 +120,7 @@ void get_cmd_from_stdin(void)
             break;
         }
     }
-};
+}
 
 int main(void)
 {
