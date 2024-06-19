@@ -19,6 +19,12 @@ USART_TypeDef* convert_uart_name(const char* port_name)
     {
         return USART3;
     }
+#    if defined(STM32F765xx)
+    else if (strcmp(port_name, "UART6") == 0)
+    {
+        return USART6;
+    }
+#    endif
     else
     {
         return NULL;
@@ -95,7 +101,7 @@ int rserial_open(rserial*    instance,
                  const char* port_name,
                  int         baud,
                  const char* mode,
-                 int         flow_ctrl,
+                 flow_ctrl_t flow_ctrl,
                  int         byte_timeout_us)
 {
     uint32_t tmp;
@@ -108,13 +114,22 @@ int rserial_open(rserial*    instance,
     {
         return -1;
     }
-    if (flow_ctrl == 1)
+    switch (flow_ctrl)
     {
+    case FLOW_CTRL_RTS:
+        instance->uart.Init.HwFlowCtl = UART_HWCONTROL_RTS;
+        break;
+    case FLOW_CTRL_CTS:
+        instance->uart.Init.HwFlowCtl = UART_HWCONTROL_CTS;
+        break;
+    case FLOW_CTRL_RTSCTS:
         instance->uart.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
-    }
-    else
-    {
+        break;
+    case FLOW_CTRL_DE:
+    case FLOW_CTRL_NONE:
+    default:
         instance->uart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+        break;
     }
     if (check_baud(baud) == 0)
     {
@@ -148,9 +163,19 @@ int rserial_open(rserial*    instance,
     {
         instance->uart.Init.Parity = tmp;
     }
-    if (HAL_UART_Init(&instance->uart) != HAL_OK)
+    if (flow_ctrl != FLOW_CTRL_DE)
     {
-        return -1;
+        if (HAL_UART_Init(&instance->uart) != HAL_OK)
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        if (HAL_RS485Ex_Init(&instance->uart, UART_DE_POLARITY_HIGH, 0, 0) != HAL_OK)
+        {
+            Error_Handler();
+        }
     }
     return 0;
 }
@@ -209,6 +234,24 @@ int rserial_close(rserial* instance)
         return -1;
     }
     return 0;
+}
+
+int rserial_write_it(rserial* instance, uint8_t* data, size_t size)
+{
+    if (HAL_UART_Transmit_IT(&instance->uart, data, size) != HAL_OK)
+    {
+        return -1;
+    }
+    return (int) size;
+}
+
+int rserial_read_it(rserial* instance, uint8_t* data, size_t size)
+{
+    if (HAL_UART_Receive_IT(&instance->uart, data, size) != HAL_OK)
+    {
+        return -1;
+    }
+    return (int) size;
 }
 
 #endif
@@ -404,7 +447,7 @@ int rserial_open(rserial*    instance,
                  const char* port_name,
                  int         baud,
                  const char* mode,
-                 int         flow_ctrl,
+                 flow_ctrl_t flow_ctrl,
                  int         byte_timeout_us)
 {
     if (instance == NULL || port_name == NULL || instance->opened || byte_timeout_us < 0)
@@ -485,7 +528,7 @@ int rserial_open(rserial*    instance,
 
     new_settings.c_cflag = (unsigned long) (bits | cpar | stop_bits | CLOCAL | CREAD);
 
-    if (flow_ctrl)
+    if (flow_ctrl == FLOW_CTRL_RTSCTS)
     {
         new_settings.c_cflag |= CRTSCTS;
     }

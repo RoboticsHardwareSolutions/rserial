@@ -1,5 +1,51 @@
 # rserial
 
+### MCU with Interrupt:
+
+1. If you want to use IT, you must enable IRQ of your UART interface in MspInit function after initialization of pins for this interface.
+
+```c
+void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
+{
+    ...
+    // initialize pins for USART6
+    
+    /* USER CODE BEGIN USART6_MspInit 1 */
+    HAL_NVIC_SetPriority(USART6_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(USART6_IRQn);
+    /* USER CODE END USART6_MspInit 1 */
+}
+```
+
+2. After `rserial_open(&serial, ...)` to registrate necessary callbacks for this instance:
+```c
+{
+    is_opened = rserial_open(&serial, port_name, 115200, "8N1", FLOW_CTRL_DE, 4000);
+
+    HAL_UART_RegisterCallback(&serial.uart, HAL_UART_TX_COMPLETE_CB_ID, tx_cplt_callback);
+    HAL_UART_RegisterCallback(&serial.uart, HAL_UART_RX_COMPLETE_CB_ID, rx_cplt_callback);
+}
+```
+_Note:_ `tx_cplt_callback` and `rx_cplt_callback` must be defined.
+
+
+3. For this instance must be defined IRQ Handler by you:
+
+```c
+void USART6_IRQHandler(void)
+{
+    HAL_UART_IRQHandler(&serial.uart);
+}
+```
+
+4After that you can to use read and write function with suffix _it.
+Example:
+```c
+rserial_write_it(&serial, buffer, sizeof(buffer));
+```
+
+### UNIX
+
 Simple example how to use
 ```
 

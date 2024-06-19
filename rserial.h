@@ -10,6 +10,16 @@ extern "C" {
 #include "stdbool.h"
 #include "rserial_def.h"
 
+typedef enum
+{
+    FLOW_CTRL_NONE,
+    FLOW_CTRL_RTS,
+    FLOW_CTRL_CTS,
+    FLOW_CTRL_RTSCTS,
+    FLOW_CTRL_DE,
+
+} flow_ctrl_t;
+
 typedef struct serial_port rserial;
 
 /**
@@ -30,7 +40,7 @@ int rserial_open(rserial*    instance,
                  const char* port_name,
                  int         baud,
                  const char* mode,
-                 int         flow_ctrl,
+                 flow_ctrl_t flow_ctrl,
                  int         byte_timeout_us);
 
 /**
@@ -88,6 +98,32 @@ int rserial_close(rserial* instance);
  * @return int              Return err -1, 0 - no available data, >0 - size of readed data from device
  */
 int rserial_enable_it(rserial* instance, void (*handler)(int));
+
+/** read and write with IT **/
+#if defined(STM32F072xB) || defined(STM32F091xC) || defined(STM32F103xB) || defined(STM32F407xx) || \
+    defined(STM32F429xx) || defined(STM32F103xE) || defined(STM32F765xx) || defined(STM32G474xx)
+
+/**
+ * @brief
+ *
+ * @param instance          Rserial instance
+ * @param data              Pointer to buffer, which to send
+ * @param size              Size of data
+ * @return int              Return err -1, 0 - no available to write data, >0 - size of written data to device
+ */
+int rserial_write_it(rserial* instance, uint8_t* data, size_t size);
+
+/**
+ * @brief                   Read bytes from device up to a certain eol.
+ *
+ * @param instance          Rserial instance
+ * @param data              Pointer to buffer, where to reed data
+ * @param size              Size of expected data
+ * @return int              Return err -1, 0 - no available data, >0 - size of readed data from device
+ */
+int rserial_read_it(rserial* instance, uint8_t* data, size_t size);
+
+#endif
 
 #ifdef __cplusplus
 }
