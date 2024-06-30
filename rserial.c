@@ -674,7 +674,8 @@ int rserial_read_stream(rserial* instance, uint8_t* data)
 
 int rserial_write(rserial* instance, uint8_t* data, size_t size)
 {
-    if (data == NULL || instance->opened == false || instance == NULL || size == 0)
+    // Evaluated left-to-right, see C 6.5.14 Logical OR operator
+    if (instance == NULL || data == NULL || instance->opened == false || size == 0)
     {
         return -1;
     }
