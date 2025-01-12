@@ -1,4 +1,0 @@
-[submodule "test/runit"]
-	path = test/runit
-	url = ../runit.git
-
