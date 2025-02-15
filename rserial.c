@@ -174,7 +174,7 @@ int rserial_open(rserial*    instance,
     {
         if (HAL_RS485Ex_Init(&instance->uart, UART_DE_POLARITY_HIGH, 0, 0) != HAL_OK)
         {
-            Error_Handler();
+            return -1;
         }
     }
     return 0;

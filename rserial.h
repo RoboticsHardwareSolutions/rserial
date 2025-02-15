@@ -4,12 +4,13 @@
 #include "stdint.h"
 #include "stdio.h"
 
-typedef enum {
-  FLOW_CTRL_NONE,
-  FLOW_CTRL_RTS,
-  FLOW_CTRL_CTS,
-  FLOW_CTRL_RTSCTS,
-  FLOW_CTRL_DE,
+typedef enum
+{
+    FLOW_CTRL_NONE,
+    FLOW_CTRL_RTS,
+    FLOW_CTRL_CTS,
+    FLOW_CTRL_RTSCTS,
+    FLOW_CTRL_DE,
 
 } flow_ctrl_t;
 
@@ -30,8 +31,12 @@ typedef struct serial_port rserial;
  * value (f.e. 5000000) for correct working of rserial_read()
  * @return int              Return err -1 or OK - 0
  */
-int rserial_open(rserial *instance, const char *port_name, int baud,
-                 const char *mode, flow_ctrl_t flow_ctrl, int byte_timeout_us);
+int rserial_open(rserial*    instance,
+                 const char* port_name,
+                 int         baud,
+                 const char* mode,
+                 flow_ctrl_t flow_ctrl,
+                 int         byte_timeout_us);
 
 /**
  * @brief                   Read bytes from device up to a certain eol.
@@ -44,8 +49,7 @@ int rserial_open(rserial *instance, const char *port_name, int baud,
  * @return int              Return err -1, 0 - no available data, >0 - size of
  * readed data from device
  */
-int rserial_read(rserial *instance, uint8_t *data, size_t size,
-                 unsigned int timeout_us);
+int rserial_read(rserial* instance, uint8_t* data, size_t size, unsigned int timeout_us);
 
 /**
  * @brief                   Read bytes from device with fixed size and timeout.
@@ -58,7 +62,7 @@ int rserial_read(rserial *instance, uint8_t *data, size_t size,
  * @return int              Return err -1, 0 - no available data, >0 - size of
  * readed data from device
  */
-int rserial_readline(rserial *instance, char *data, char eol, int timeout_us);
+int rserial_readline(rserial* instance, char* data, char eol, int timeout_us);
 
 /**
  * @brief                   Read bytes from device with non-blocking mode.
@@ -68,7 +72,7 @@ int rserial_readline(rserial *instance, char *data, char eol, int timeout_us);
  * @return int              Return err -1, 0 - no available data, >0 - size of
  * readed data from device
  */
-int rserial_read_stream(rserial *instance, uint8_t *data);
+int rserial_read_stream(rserial* instance, uint8_t* data);
 
 /**
  * @brief
@@ -79,11 +83,11 @@ int rserial_read_stream(rserial *instance, uint8_t *data);
  * @return int              Return err -1, 0 - no available to write data, >0 -
  * size of written data to device
  */
-int rserial_write(rserial *instance, uint8_t *data, size_t size);
+int rserial_write(rserial* instance, uint8_t* data, size_t size);
 
-bool rserial_is_ok(rserial *instance);
+bool rserial_is_ok(rserial* instance);
 
-int rserial_close(rserial *instance);
+int rserial_close(rserial* instance);
 
 /**
  * @brief                   Enables IT mode. Need to define handler function and
@@ -94,12 +98,11 @@ int rserial_close(rserial *instance);
  * @return int              Return err -1, 0 - no available data, >0 - size of
  * readed data from device
  */
-int rserial_enable_it(rserial *instance, void (*handler)(int));
+int rserial_enable_it(rserial* instance, void (*handler)(int));
 
 /** read and write with IT **/
-#if defined(STM32F072xB) || defined(STM32F091xC) || defined(STM32F103xB) ||    \
-    defined(STM32F407xx) || defined(STM32F429xx) || defined(STM32F103xE) ||    \
-    defined(STM32F765xx) || defined(STM32G474xx)
+#if defined(STM32F072xB) || defined(STM32F091xC) || defined(STM32F103xB) || defined(STM32F407xx) || \
+    defined(STM32F429xx) || defined(STM32F103xE) || defined(STM32F765xx) || defined(STM32G474xx)
 
 /**
  * @brief
@@ -110,7 +113,7 @@ int rserial_enable_it(rserial *instance, void (*handler)(int));
  * @return int              Return err -1, 0 - no available to write data, >0 -
  * size of written data to device
  */
-int rserial_write_it(rserial *instance, uint8_t *data, size_t size);
+int rserial_write_it(rserial* instance, uint8_t* data, size_t size);
 
 /**
  * @brief                   Read bytes from device up to a certain eol.
@@ -121,10 +124,6 @@ int rserial_write_it(rserial *instance, uint8_t *data, size_t size);
  * @return int              Return err -1, 0 - no available data, >0 - size of
  * readed data from device
  */
-int rserial_read_it(rserial *instance, uint8_t *data, size_t size);
+int rserial_read_it(rserial* instance, uint8_t* data, size_t size);
 
 #endif
-
-
-
-
