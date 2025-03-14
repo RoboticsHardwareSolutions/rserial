@@ -7,7 +7,6 @@
 
 #    include "stm32f1xx_hal.h"
 #    include "stm32f1xx_hal_uart.h"
-#    include "usart.h"
 
 #elif defined(STM32F072xB) || defined(STM32F091xC)
 

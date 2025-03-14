@@ -172,10 +172,12 @@ int rserial_open(rserial*    instance,
     }
     else
     {
+#    if !defined(STM32F103xB) && !defined(STM32F103xE)  // TODO on this MCU
         if (HAL_RS485Ex_Init(&instance->uart, UART_DE_POLARITY_HIGH, 0, 0) != HAL_OK)
         {
             return -1;
         }
+#    endif
     }
     return 0;
 }
