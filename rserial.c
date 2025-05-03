@@ -19,7 +19,12 @@ USART_TypeDef* convert_uart_name(const char* port_name)
     {
         return USART3;
     }
-#    if defined(STM32F765xx)
+#    if defined(STM32F103xE)
+    else if (strcmp(port_name, "UART5") == 0)
+    {
+        return UART5;
+    }
+#    elif defined(STM32F765xx)
     else if (strcmp(port_name, "UART6") == 0)
     {
         return USART6;
@@ -172,7 +177,12 @@ int rserial_open(rserial*    instance,
     }
     else
     {
-#    if !defined(STM32F103xB) && !defined(STM32F103xE)  // TODO on this MCU
+#    if defined(STM32F103xB) || defined(STM32F103xE)  // TODO on this MCU
+        if (HAL_UART_Init(&instance->uart) != HAL_OK)
+        {
+            return -1;
+        }
+#    else
         if (HAL_RS485Ex_Init(&instance->uart, UART_DE_POLARITY_HIGH, 0, 0) != HAL_OK)
         {
             return -1;
