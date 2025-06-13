@@ -26,7 +26,7 @@ if (UNIX AND NOT APPLE)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_UNIX)
 endif ()
 
-# Test runner executable testing the static library
+#################### TEST SECTION #######################
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
     add_executable(${PROJECT_NAME}_test test/test.c)
     if (NOT TARGET runit)
@@ -43,23 +43,22 @@ if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
     add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
 endif ()
 
-
 #################### FORMAT SECTION #######################
-
+include(FetchContent)
+FetchContent_Declare(
+        rlibhelper
+        GIT_REPOSITORY https://github.com/RoboticsHardwareSolutions/rlibhelper.git
+        GIT_TAG main
+)
+FetchContent_MakeAvailable(rlibhelper)
 set(FILES_FOR_FORMATTING
         rserial.c
         rserial.h
         rserial_def.h
         test/test.c
 )
+include(${CMAKE_BINARY_DIR}/_deps/rlibhelper-src/format.cmake)
+format_files(${PROJECT_NAME} SOURCES ${FILES_FOR_FORMATTING})
 
-# clang-format
-find_program(clang_format NAMES clang-format)
-if (NOT clang_format)
-    message(STATUS "Could not locate clang-format")
-else ()
-    file(GLOB format_files ${FILES_FOR_FORMATTING})
-    add_custom_target(${PROJECT_NAME}_format ALL COMMAND ${clang_format} -i -fallback-style=none -style=file --verbose ${format_files})
-endif ()
 
 
