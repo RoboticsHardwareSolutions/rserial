@@ -4,8 +4,8 @@
 rserial serial1;
 rserial serial2;
 
-#define VIRTUAL_PORT1 "/dev/ttys002"
-#define VIRTUAL_PORT2 "/dev/ttys003"
+#define VIRTUAL_PORT1 "/tmp/rserial1"
+#define VIRTUAL_PORT2 "/tmp/rserial2"
 
 uint8_t example_of_data1[] = {0xAA, 0xBB, 0xCC};
 char    example_of_data2[] = "Hello World\n";
