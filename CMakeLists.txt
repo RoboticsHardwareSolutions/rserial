@@ -13,7 +13,7 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 
-if (MSVC OR MSYS OR MINGW)
+if (WIN32)
     target_compile_definitions(rserial PUBLIC -DRSERIAL_FOR_WINDOWS)
 endif ()
 
@@ -40,7 +40,14 @@ if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
     endif ()
     target_link_libraries(${PROJECT_NAME}_test rserial runit)
     enable_testing()
+
+    add_test(NAME socatStart COMMAND ${CMAKE_CURRENT_LIST_DIR}/test/socatfortests.sh start)
+    add_test(NAME socatStop COMMAND ${CMAKE_CURRENT_LIST_DIR}/test/socatfortests.sh stop)
     add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
+
+    set_tests_properties(socatStart PROPERTIES FIXTURES_SETUP socat)
+    set_tests_properties(socatStop PROPERTIES FIXTURES_CLEANUP socat)
+    set_tests_properties(${PROJECT_NAME}_test PROPERTIES FIXTURES_REQUIRED "socat")
 endif ()
 
 
@@ -64,9 +71,3 @@ else ()
     message(WARNING "format.cmake file not found")
 endif ()
 format_files(${PROJECT_NAME} SOURCES ${FILES_FOR_FORMATTING})
-
-
-
-
-
-
