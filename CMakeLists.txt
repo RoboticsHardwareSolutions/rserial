@@ -50,6 +50,7 @@ if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Generic)
     set_tests_properties(${PROJECT_NAME}_test PROPERTIES FIXTURES_REQUIRED "socat")
 endif ()
 
+
 #################### FORMAT SECTION #######################
 include(FetchContent)
 FetchContent_Declare(
@@ -64,5 +65,9 @@ set(FILES_FOR_FORMATTING
         rserial_def.h
         test/test.c
 )
-include(${CMAKE_BINARY_DIR}/_deps/rlibhelper-src/format.cmake)
+if (EXISTS "${rlibhelper_SOURCE_DIR}/format.cmake")
+    include(${rlibhelper_SOURCE_DIR}/format.cmake)
+else ()
+    message(WARNING "format.cmake file not found")
+endif ()
 format_files(${PROJECT_NAME} SOURCES ${FILES_FOR_FORMATTING})
