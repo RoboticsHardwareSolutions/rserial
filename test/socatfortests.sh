@@ -15,14 +15,17 @@ start)
         count=0
         until [[ -e $PORT1 || -e $PORT2 ]]
         do
-            echo "waiting for vports $count"
             if (( $count > 100 )); then
+                echo "Failed to create virtual ports"
                 exit 1
             fi
             count=$(($count +1))
-            # sleep
+            sleep 0.001
         done
+        echo "Virtal ports created: '$PORT1', '$PORT2'"
         exitcode=0
+    else
+        echo "ERROR: pid '$socatpid' not socat"
     fi
     ;;
 stop)
