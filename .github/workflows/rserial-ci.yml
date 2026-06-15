@@ -1,6 +1,10 @@
 name: rserial CI
 
-on: [pull_request]
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    branches: [ 'main' ]
 
 jobs:
   build:
@@ -17,13 +21,13 @@ jobs:
           sudo apt-get install -y build-essential ninja-build socat
 
       - name: Ensure test script is executable
-        run: chmod +x rlibs/rserial/test/socatfortests.sh
+        run: chmod +x test/socatfortests.sh
 
       - name: Configure CMake
-        run: cmake -S rlibs/rserial -B rlibs/rserial/build -GNinja -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build rlibs/rserial/build --config Release -- -j$(nproc)
+        run: cmake --build build --config Release -- -j$(nproc)
 
       - name: Run tests
-        run: ctest --test-dir rlibs/rserial/build --output-on-failure -V
+        run: ctest --test-dir build --output-on-failure -V
