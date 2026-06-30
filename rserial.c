@@ -743,9 +743,10 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
     {
         set_rts(instance->fd, true);
 
-        rc = (int) write(instance->fd, data + msg_length, size);
+        rc = (int) write(instance->fd, data + msg_length, length_to_write);
         if (rc == -1)
         {
+            set_rts(instance->fd, false);
             return -1;
         }
 
@@ -760,10 +761,17 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
         err = tcdrain(instance->fd);
         if (err == -1)
         {
+            set_rts(instance->fd, false);
             return -1;
         }
-        set_rts(instance->fd, false);
     } while (1);
+
+    err = tcdrain(instance->fd);
+    set_rts(instance->fd, false);
+    if (err == -1)
+    {
+        return -1;
+    }
 
     return msg_length;
 }
