@@ -67,7 +67,7 @@ set(FILES_FOR_FORMATTING
 )
 if (EXISTS "${rlibhelper_SOURCE_DIR}/format.cmake")
     include(${rlibhelper_SOURCE_DIR}/format.cmake)
+    format_files(${PROJECT_NAME} SOURCES ${FILES_FOR_FORMATTING})
 else ()
     message(WARNING "format.cmake file not found")
 endif ()
-format_files(${PROJECT_NAME} SOURCES ${FILES_FOR_FORMATTING})
