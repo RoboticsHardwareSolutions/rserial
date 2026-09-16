@@ -776,6 +776,10 @@ int rserial_write(rserial* instance, uint8_t* data, size_t size)
     return msg_length;
 }
 
+bool rserial_is_ok(rserial* instance)
+{
+    return true;
+}
 int rserial_close(rserial* instance)
 {
     if (instance == NULL || instance->opened != true)
