@@ -697,9 +697,10 @@ int rserial_readline(rserial* instance, char* data, char eol, int timeout_us)
     return msg_length;
 }
 
-int rserial_read_stream(rserial* instance, uint8_t* data)
+int rserial_read_stream(rserial* instance, uint8_t* data, size_t limit)
 {
-    if (instance == NULL || data == NULL || instance->opened == false)
+    if (instance == NULL || data == NULL || instance->opened == false ||
+        limit == 0)
     {
         return -1;
     }
@@ -716,6 +717,12 @@ int rserial_read_stream(rserial* instance, uint8_t* data)
     if (bytes_available == 0)
     {
         return bytes_available;
+    }
+
+    // Never read beyond the caller-provided buffer
+    if ((size_t) bytes_available > limit)
+    {
+        bytes_available = (int) limit;
     }
 
     rc = (int) read(instance->fd, data, (size_t) bytes_available);

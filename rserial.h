@@ -69,10 +69,11 @@ int rserial_readline(rserial* instance, char* data, char eol, int timeout_us);
  *
  * @param instance          Rserial instance
  * @param data              Pointer to buffer, where to reed data
+ * @param limit             Maximum number of bytes to read into data
  * @return int              Return err -1, 0 - no available data, >0 - size of
  * readed data from device
  */
-int rserial_read_stream(rserial* instance, uint8_t* data);
+int rserial_read_stream(rserial* instance, uint8_t* data, size_t limit);
 
 /**
  * @brief
